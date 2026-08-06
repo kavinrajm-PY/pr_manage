@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isProjectManager() {
+      return isAuthenticated() && getUserRole() == 'PROJECT_MANAGER';
+    }
+
+    function isMemberOfProject(projectId) {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/projectMembers/$(projectId + '_' + request.auth.uid)) ||
+        // Check memberships dynamically by querying membership documents
+        // Since rules can do exists, we check if a membership exists with this projectId and userId
+        // In the client, membershipId is generated as projectId + "_" + userId or randomly.
+        // We will make sure the client uses a consistent document ID: "membership_" + projectId + "_" + userId.
+        exists(/databases/$(database)/documents/projectMembers/$('membership_' + projectId + '_' + request.auth.uid))
+      );
+    }
+
+    function hasProjectMembership(projectId) {
+      // Dynamic collection scan helper - checks if there is any membership document
+      // matching both criteria. Better to rely on predictable document IDs in client.
+      return isAuthenticated() && (
+        isProjectManager() ||
+        exists(/databases/$(database)/documents/projectMembers/$('membership_' + projectId + '_' + request.auth.uid))
+      );
+    }
+
+    // ─── collection: users ──────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      // PM can write profiles (user provisioning); Users can write/update their own document
+      allow write: if isAuthenticated() && (isProjectManager() || request.auth.uid == userId);
+    }
+
+    // ─── collection: projects ───────────────────────────────────────────────
+    match /projects/{projectId} {
+      allow read: if isAuthenticated() && (isProjectManager() || hasProjectMembership(projectId));
+      allow write: if isProjectManager();
+    }
+
+    // ─── collection: projectMembers ─────────────────────────────────────────
+    match /projectMembers/{membershipId} {
+      allow read: if isAuthenticated();
+      allow write: if isProjectManager();
+    }
+
+    // ─── collection: tasks ──────────────────────────────────────────────────
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated() && (
+        isProjectManager() ||
+        resource.data.get('assignedTo', '') == request.auth.uid ||
+        hasProjectMembership(resource.data.get('projectId', ''))
+      );
+      
+      // Creating tasks: only Team Lead of the project can create
+      allow create: if isAuthenticated() && (
+        isProjectManager() || 
+        (getUserRole() == 'TEAM_LEAD' && hasProjectMembership(request.resource.data.projectId))
+      );
+
+      // Updating tasks:
+      // 1. Team Lead can update any task fields for their project
+      // 2. Team Member can only update the status of tasks assigned to them (cannot alter other fields)
+      allow update: if isAuthenticated() && (
+        isProjectManager() ||
+        (getUserRole() == 'TEAM_LEAD' && hasProjectMembership(resource.data.get('projectId', ''))) ||
+        (getUserRole() == 'TEAM_MEMBER' && 
+         resource.data.get('assignedTo', '') == request.auth.uid && 
+         request.resource.data.get('assignedTo', '') == request.auth.uid &&
+         request.resource.data.get('title', '') == resource.data.get('title', '') &&
+         request.resource.data.get('description', '') == resource.data.get('description', '') &&
+         request.resource.data.get('priority', '') == resource.data.get('priority', '') &&
+         request.resource.data.get('deadline', '') == resource.data.get('deadline', ''))
+      );
+
+      allow delete: if isProjectManager();
+    }
+
+    // ─── collection: comments ───────────────────────────────────────────────
+    match /comments/{commentId} {
+      allow read: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && (
+        // Must match requesting user
+        request.resource.data.userId == request.auth.uid &&
+        // PM cannot comment (per Section 9), only Lead or Member
+        getUserRole() != 'PROJECT_MANAGER' &&
+        // Verify user is assigned to the task OR is a member of the project the task belongs to
+        (
+          get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.get('assignedTo', '') == request.auth.uid ||
+          exists(/databases/$(database)/documents/projectMembers/$('membership_' + get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.get('projectId', '') + '_' + request.auth.uid))
+        )
+      );
+      
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── collection: notifications ─────────────────────────────────────────
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId != null;
+    }
+  }
+}
