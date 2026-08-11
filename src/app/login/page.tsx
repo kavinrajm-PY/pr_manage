@@ -7,7 +7,7 @@ import { getUserById } from '@/services/users';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, LogIn, Eye, EyeOff, BarChart3, ShieldCheck, Workflow } from 'lucide-react';
+import { AlertCircle, LogIn, Eye, EyeOff, Layers } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,76 +58,77 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-background">
-      {/* ── Left panel (White background, big logo, features list) ── */}
-      <div className="hidden lg:flex flex-col justify-between w-[45%] bg-background p-12 border-r border-muted/50">
-        <div className="flex-1 flex flex-col justify-center items-center text-center space-y-8">
-          <div className="flex flex-col items-center space-y-4">
-            <img src="/logo.png" alt="PY Manage Logo" className="w-36 h-36 object-contain drop-shadow-md animate-pulse duration-3000" />
-            <div className="space-y-2">
-              <h1 className="text-4xl font-black tracking-tight text-primary">PY Manage</h1>
-              <p className="text-muted-foreground text-sm max-w-xs leading-relaxed">
-                Track projects, assign tasks, and measure performance — all in one clean place.
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full max-w-sm border-t border-muted/60 pt-6 space-y-4">
-            <div className="flex items-start gap-3.5 text-left">
-              <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <BarChart3 className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Advanced Analytics</h3>
-                <p className="text-xs text-muted-foreground">Monitor real-time progress history and individual metrics.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3.5 text-left">
-              <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <ShieldCheck className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Access Management</h3>
-                <p className="text-xs text-muted-foreground">Secure role provisioning, rules, and activity controls.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3.5 text-left">
-              <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Workflow className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Simplified Delegation</h3>
-                <p className="text-xs text-muted-foreground">Assign projects, manage deadlines, and update status timelines.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <p className="text-muted-foreground text-xs text-center font-medium">
-          &copy; {new Date().getFullYear()} PY Manage. Internal use only.
-        </p>
-      </div>
-
-      {/* ── Right panel (Purple gradient, enlarged login card) ── */}
+    <div className="min-h-screen flex bg-background">
+      {/* ── Left panel ── */}
       <div
-        className="flex-1 flex items-center justify-center px-6 py-12 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #3b1f56 0%, #58326A 50%, #7c4d96 100%)' }}
+        className="hidden lg:flex flex-col justify-between items-center w-[35%] min-h-screen p-12 relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #2e1843 0%, #462554 50%, #5c3570 100%)' }}
       >
-        {/* Decorative background lights */}
+        {/* Decorative blobs */}
         <div className="absolute top-[-80px] left-[-80px] w-80 h-80 rounded-full opacity-20"
           style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
         <div className="absolute bottom-[-60px] right-[-60px] w-64 h-64 rounded-full opacity-10"
           style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
+        <div className="absolute top-1/2 right-0 w-48 h-96 rounded-l-full opacity-10"
+          style={{ background: 'radial-gradient(circle, #c084fc 0%, transparent 70%)' }} />
 
-        <div className="w-full max-w-lg bg-background shadow-2xl rounded-2xl p-10 space-y-6 border border-white/10 z-10">
-          <div className="space-y-1">
-            <h3 className="text-3xl font-extrabold tracking-tight text-foreground">Welcome back</h3>
-            <p className="text-muted-foreground text-sm">Enter your details below to access your account.</p>
+        {/* Brand */}
+        <div className="relative z-10 flex flex-col items-center text-center gap-5 w-full">
+          <div className="bg-white p-5 rounded-2xl shadow-2xl w-32 h-32 flex items-center justify-center border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-purple-500/10">
+            <img src="/logo.png" alt="PY Manage Logo" className="w-24 h-24 object-contain" />
+          </div>
+          <span className="text-white font-black text-3xl tracking-tight drop-shadow-sm">PY Manage</span>
+        </div>
+
+        {/* Hero content */}
+        <div className="relative z-10 space-y-6 flex flex-col items-center text-center w-full">
+          <div className="w-12 h-1 rounded-full bg-purple-300/60" />
+          <h1 className="text-4xl font-extrabold text-white leading-tight drop-shadow-sm">
+            Manage your team<br />
+            <span className="text-purple-200">with confidence.</span>
+          </h1>
+          <p className="text-purple-200/80 text-sm leading-relaxed max-w-sm">
+            Track projects, assign tasks, and measure performance — all in one place.
+          </p>
+
+          {/* Feature pills */}
+          <div className="flex flex-wrap justify-center gap-2 pt-2 max-w-md">
+            {['Project Tracking', 'Task Management', 'Team Analytics', 'Performance Reports'].map((f) => (
+              <span
+                key={f}
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-purple-100 border border-purple-400/30 transition-all duration-200 hover:scale-105 hover:bg-white/10 cursor-default"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              >
+                {f}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer text */}
+        <p className="relative z-10 text-purple-300/60 text-xs text-center w-full">
+          © {new Date().getFullYear()} PY Manage. Internal use only.
+        </p>
+      </div>
+
+      {/* ── Right panel ── */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-muted/10 relative">
+        {/* Soft glowing background element */}
+        <div className="absolute inset-0 pointer-events-none opacity-20"
+          style={{ background: 'radial-gradient(circle at center, rgba(124, 77, 150, 0.08) 0%, transparent 65%)' }} />
+
+        <div className="w-full max-w-xl bg-background border border-muted-foreground/15 shadow-2xl rounded-3xl p-12 space-y-10 relative overflow-hidden transition-all duration-300 hover:shadow-purple-500/5">
+
+          {/* Brand Header Removed - Large Form Title */}
+          <div className="space-y-2 text-center pb-2">
+            <h2 className="text-4xl font-black tracking-tight text-foreground">Sign In</h2>
+            <p className="text-muted-foreground text-sm font-medium">Enter your credentials to access your workspace</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-semibold">Email address</Label>
+              <Label htmlFor="email" className="text-base font-semibold">Email address</Label>
               <Input
                 id="email"
                 type="email"
@@ -136,12 +137,12 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="h-12 text-base px-4 focus-visible:ring-primary/40"
+                className="h-14 text-lg px-5 rounded-xl"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
+              <Label htmlFor="password" className="text-base font-semibold">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -151,12 +152,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="h-12 text-base px-4 pr-12 focus-visible:ring-primary/40"
+                  className="h-14 text-lg px-5 pr-14 rounded-xl"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -166,9 +167,9 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div className="flex items-start gap-2.5 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg px-4 py-3">
-                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <p className="text-sm font-semibold">{error}</p>
+              <div className="flex items-start gap-2.5 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl px-5 py-4">
+                <AlertCircle className="h-4.5 w-4.5 mt-0.5 flex-shrink-0" />
+                <p className="text-base font-medium">{error}</p>
               </div>
             )}
 
@@ -176,12 +177,12 @@ export default function LoginPage() {
               type="submit"
               id="login-submit-btn"
               disabled={loading}
-              className="w-full h-12 text-base font-bold gap-2 mt-2 transition-transform active:scale-[0.98]"
+              className="w-full h-14 text-lg font-semibold gap-2 rounded-xl"
               style={{ background: 'linear-gradient(135deg, #58326A, #7c4d96)' }}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Signing in…
                 </span>
               ) : (
@@ -192,9 +193,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground pt-2">
+          <p className="text-center text-base text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <span className="font-bold text-foreground">Contact your Project Manager.</span>
+            <span className="font-semibold text-foreground">Contact your Project Manager.</span>
           </p>
         </div>
       </div>
