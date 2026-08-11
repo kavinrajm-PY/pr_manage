@@ -9,8 +9,8 @@ import { AlertCircle } from 'lucide-react';
 interface TaskListProps {
   tasks: TaskWithUsers[];
   emptyMessage?: string;
-  showProjectName?: boolean; // In case we show cross-project list on dashboard
-  projectsMap?: Record<string, string>; // Maps projectId to projectName
+  showProjectName?: boolean;
+  projectsMap?: Record<string, string>;
 }
 
 export function TaskList({
@@ -29,12 +29,14 @@ export function TaskList({
             <TableHead>Assigned To</TableHead>
             <TableHead>Priority</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Progress</TableHead>
             <TableHead className="text-right">Deadline</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {tasks.map((task) => {
             const isTaskOverdue = isOverdue(task);
+            const pct = task.completionPercent ?? 0;
             return (
               <TableRow key={task.id} className="hover:bg-muted/30">
                 <TableCell className="font-semibold">
@@ -56,6 +58,29 @@ export function TaskList({
                 <TableCell>
                   <StatusBadge status={task.status} />
                 </TableCell>
+                <TableCell className="min-w-[96px]">
+                  {task.status === 'COMPLETED' ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-16 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-xs font-semibold text-emerald-600">100%</span>
+                    </div>
+                  ) : pct > 0 ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${pct}%`,
+                            background: 'linear-gradient(90deg, #7c4d96, #a855f7)',
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs font-semibold text-primary">{pct}%</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right text-sm font-medium">
                   <div className="inline-flex items-center gap-1.5 justify-end">
                     {isTaskOverdue && <AlertCircle className="h-3.5 w-3.5 text-rose-600 animate-pulse" />}
@@ -70,7 +95,7 @@ export function TaskList({
           {tasks.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={showProjectName ? 6 : 5}
+                colSpan={showProjectName ? 7 : 6}
                 className="h-24 text-center text-muted-foreground"
               >
                 {emptyMessage}

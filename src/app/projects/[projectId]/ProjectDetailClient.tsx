@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { getProjectById, updateProject } from '@/services/projects';
+import { getProjectById, updateProject, deleteProject } from '@/services/projects';
 import { getProjectMembers } from '@/services/projectMembers';
 import { getTasksByProject } from '@/services/tasks';
 import { getUserById, getUsersByIds } from '@/services/users';
@@ -19,9 +19,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { isOverdue, isCompletedOnTime, isCompletedLate, formatDate, calcProgress, daysUntilDeadline } from '@/lib/utils/dates';
-import { FolderKanban, Users, Calendar, AlertCircle, Ban, Clock, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { FolderKanban, Users, Calendar, AlertCircle, Ban, Clock, CheckCircle2, ShieldAlert, Trash2 } from 'lucide-react';
 import { ManageTeamDialog } from '@/components/projects/ManageTeamDialog';
 import Link from 'next/link';
 
@@ -39,6 +40,8 @@ export default function ProjectDetailClient() {
   const [tasks, setTasks] = useState<TaskWithUsers[]>([]);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [deletingProject, setDeletingProject] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const triggerRefresh = () => setRefreshTrigger((prev) => prev + 1);
 
@@ -194,6 +197,20 @@ export default function ProjectDetailClient() {
     );
   }
 
+  async function handleDeleteProject() {
+    if (!project) return;
+    setDeletingProject(true);
+    try {
+      await deleteProject(project.id);
+      toast({ title: 'Project Deleted', description: `"${project.name}" has been deleted.` });
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to delete project.', variant: 'destructive' });
+      setDeletingProject(false);
+      setConfirmDelete(false);
+    }
+  }
+
   const todoPercentage = totalTasksCount > 0 ? Math.round((todoTasksCount / totalTasksCount) * 100) : 0;
   const progressPercentage = totalTasksCount > 0 ? Math.round((inProgressTasksCount / totalTasksCount) * 100) : 0;
   const blockedPercentage = totalTasksCount > 0 ? Math.round((blockedTasksCount / totalTasksCount) * 100) : 0;
@@ -215,7 +232,7 @@ export default function ProjectDetailClient() {
             <p className="text-muted-foreground max-w-2xl">{project.description}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Label htmlFor="project-status-select" className="text-xs font-semibold text-muted-foreground uppercase">
               Project Status
             </Label>
@@ -234,6 +251,26 @@ export default function ProjectDetailClient() {
                 <SelectItem value="COMPLETED">Completed</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* ── Delete Project ── */}
+            {!confirmDelete ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-destructive border-destructive/40 hover:bg-destructive/10"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2 className="h-4 w-4" /> Delete Project
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-destructive font-semibold">Confirm delete?</span>
+                <Button size="sm" variant="destructive" onClick={handleDeleteProject} disabled={deletingProject}>
+                  {deletingProject ? 'Deleting…' : 'Yes, Delete'}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>Cancel</Button>
+              </div>
+            )}
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  deleteDoc,
   collection,
   query,
   where,
@@ -104,4 +105,9 @@ export async function updateProject(
     ...updates,
     updatedAt: serverTimestamp(),
   });
+}
+
+/** Delete a project and its document (PM only) */
+export async function deleteProject(id: string): Promise<void> {
+  await deleteDoc(doc(db, COLLECTION, id));
 }

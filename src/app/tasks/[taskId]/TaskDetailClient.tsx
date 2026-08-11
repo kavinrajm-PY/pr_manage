@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { getTaskById, updateTaskStatus, updateTask } from '@/services/tasks';
+import { getTaskById, updateTaskStatus, updateTask, deleteTask } from '@/services/tasks';
 import { getProjectById } from '@/services/projects';
 import { getUserById, getUsersByIds } from '@/services/users';
 import { isProjectMember, getProjectMembers } from '@/services/projectMembers';
@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate, formatDateFull, isOverdue, formatDateWithTime } from '@/lib/utils/dates';
-import { ArrowLeft, MessageSquare, AlertCircle, ShieldAlert, Send, UserCheck } from 'lucide-react';
+import { ArrowLeft, MessageSquare, AlertCircle, ShieldAlert, Send, UserCheck, Trash2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 export default function TaskDetailClient() {
@@ -51,6 +51,14 @@ export default function TaskDetailClient() {
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [reassignTo, setReassignTo] = useState('');
   const [reassigning, setReassigning] = useState(false);
+
+  // Completion % state (Team Member only)
+  const [completionPercent, setCompletionPercent] = useState(0);
+  const [savingProgress, setSavingProgress] = useState(false);
+
+  // Delete task state (Team Lead only)
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState(false);
+  const [deletingTask, setDeletingTask] = useState(false);
 
   useEffect(() => {
     async function loadTaskDetails() {
@@ -89,6 +97,7 @@ export default function TaskDetailClient() {
         setAuthorized(true);
         setTask(taskData);
         setStatus(taskData.status);
+        setCompletionPercent(taskData.completionPercent ?? 0);
 
         // 3. Fetch related details (Project, Assignee, Creator, Comments)
         const [projectData, assigneeData, creatorData, taskComments] = await Promise.all([
@@ -142,7 +151,7 @@ export default function TaskDetailClient() {
     if (!task || !firebaseUser || !reassignTo || reassignTo === task.assignedTo) return;
     setReassigning(true);
     try {
-      await updateTask(task.id, { assignedTo: reassignTo });
+      await updateTask(task.id, { assignedTo: reassignTo }, firebaseUser.uid);
 
       // Update local state immediately
       const newAssignee = projectMembers.find((m) => m.id === reassignTo) || null;
@@ -167,12 +176,42 @@ export default function TaskDetailClient() {
     }
   }
 
+  // Save task completion percentage (Team Member only)
+  async function handleSaveProgress() {
+    if (!task || !firebaseUser) return;
+    setSavingProgress(true);
+    try {
+      await updateTask(task.id, { completionPercent }, firebaseUser.uid);
+      setTask({ ...task, completionPercent });
+      toast({ title: 'Progress Saved', description: `Task is ${completionPercent}% complete.` });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to save progress.', variant: 'destructive' });
+    } finally {
+      setSavingProgress(false);
+    }
+  }
+
+  // Delete task (Team Lead only)
+  async function handleDeleteTask() {
+    if (!task) return;
+    setDeletingTask(true);
+    try {
+      await deleteTask(task.id);
+      toast({ title: 'Task Deleted', description: `"${task.title}" has been deleted.` });
+      router.push(role === 'TEAM_LEAD' ? `/lead/projects/${task.projectId}` : `/projects/${task.projectId}`);
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to delete task.', variant: 'destructive' });
+      setDeletingTask(false);
+      setConfirmDeleteTask(false);
+    }
+  }
+
   // Handle task status update
   async function handleStatusChange(newStatus: TaskStatus) {
     if (!task || !firebaseUser) return;
     setUpdatingStatus(true);
     try {
-      await updateTaskStatus(task.id, newStatus);
+      await updateTaskStatus(task.id, newStatus, firebaseUser.uid);
       setStatus(newStatus);
 
       // Trigger status notifications
@@ -439,6 +478,32 @@ export default function TaskDetailClient() {
                     {formatDateFull(task.deadline)}
                   </span>
                 </div>
+
+                {/* Completion % — full-width row, visible to ALL roles */}
+                <div className="col-span-2 pt-2 border-t">
+                  <span className="text-muted-foreground block uppercase font-medium mb-2">Task Completion Progress</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${task.status === 'COMPLETED' ? 100 : (task.completionPercent ?? 0)}%`,
+                          background: task.status === 'COMPLETED'
+                            ? '#22c55e'
+                            : 'linear-gradient(90deg, #7c4d96, #a855f7)',
+                        }}
+                      />
+                    </div>
+                    <span className="text-sm font-bold text-primary w-10 text-right">
+                      {task.status === 'COMPLETED' ? 100 : (task.completionPercent ?? 0)}%
+                    </span>
+                  </div>
+                  {role !== 'TEAM_MEMBER' && task.completionPercent > 0 && task.status !== 'COMPLETED' && (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Self-reported by assignee
+                    </p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -506,8 +571,78 @@ export default function TaskDetailClient() {
                   </Button>
                 </div>
               )}
+
+              {/* ── Completion % slider (Team Member, IN_PROGRESS only) ─────────── */}
+              {role === 'TEAM_MEMBER' && status === 'IN_PROGRESS' && (
+                <div className="space-y-3 pt-3 border-t">
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                    <TrendingUp className="h-3.5 w-3.5" /> Completion Progress
+                  </Label>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">0%</span>
+                      <span className="font-bold text-primary text-lg">{completionPercent}%</span>
+                      <span className="text-muted-foreground">100%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={completionPercent}
+                      onChange={(e) => setCompletionPercent(Number(e.target.value))}
+                      className="w-full h-2 rounded-full accent-primary cursor-pointer"
+                    />
+                    {/* Progress bar preview */}
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${completionPercent}%`,
+                          background: completionPercent === 100 ? '#22c55e' : 'linear-gradient(90deg, #7c4d96, #a855f7)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={handleSaveProgress}
+                    disabled={savingProgress || completionPercent === (task?.completionPercent ?? 0)}
+                  >
+                    {savingProgress ? 'Saving…' : 'Save Progress'}
+                  </Button>
+                </div>
+              )}
+
+              {/* ── Delete Task (Team Lead only) ─────────────────────────────────── */}
+              {role === 'TEAM_LEAD' && (
+                <div className="pt-3 border-t">
+                  {!confirmDeleteTask ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-1.5 text-destructive border-destructive/40 hover:bg-destructive/10"
+                      onClick={() => setConfirmDeleteTask(true)}
+                    >
+                      <Trash2 className="h-4 w-4" /> Delete Task
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs text-destructive font-semibold text-center">Are you sure? This cannot be undone.</p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="destructive" className="flex-1" onClick={handleDeleteTask} disabled={deletingTask}>
+                          {deletingTask ? 'Deleting…' : 'Yes, Delete'}
+                        </Button>
+                        <Button size="sm" variant="ghost" className="flex-1" onClick={() => setConfirmDeleteTask(false)}>Cancel</Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
+
         </div>
 
         <Card>

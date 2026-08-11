@@ -14,7 +14,8 @@ import {
   CheckSquare,
   Users,
   LogOut,
-  Briefcase,
+  CalendarDays,
+  BarChart2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -30,6 +31,8 @@ function pmNavItems(): NavItem[] {
     { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { href: '/projects', label: 'Projects', icon: <FolderKanban className="w-4 h-4" /> },
     { href: '/users', label: 'Users', icon: <Users className="w-4 h-4" /> },
+    { href: '/leaves', label: 'Leave Requests', icon: <CalendarDays className="w-4 h-4" /> },
+    { href: '/reports', label: 'Reports', icon: <BarChart2 className="w-4 h-4" /> },
   ];
 }
 
@@ -44,6 +47,7 @@ function memberNavItems(): NavItem[] {
   return [
     { href: '/member/tasks', label: 'My Tasks', icon: <CheckSquare className="w-4 h-4" /> },
     { href: '/member/projects', label: 'My Projects', icon: <FolderKanban className="w-4 h-4" /> },
+    { href: '/member/leaves', label: 'Leave Requests', icon: <CalendarDays className="w-4 h-4" /> },
   ];
 }
 
@@ -61,7 +65,6 @@ export function Sidebar() {
 
   async function handleSignOut() {
     await signOut();
-    // Clear auth cookie
     document.cookie = 'firebase-auth-token=; path=/; max-age=0';
     router.push('/login');
   }
