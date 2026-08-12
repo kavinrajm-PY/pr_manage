@@ -8,7 +8,7 @@ import { ReactNode } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Sidebar } from './Sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Menu, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from './NotificationBell';
 
@@ -109,6 +109,15 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-full hover:bg-muted transition-colors flex items-center justify-center cursor-pointer border-0 outline-none"
+              onClick={() => window.location.reload()}
+              title="Refresh Page"
+            >
+              <RefreshCw className="h-5 w-5 text-foreground" />
+            </Button>
             <NotificationBell />
 
             <Sheet>

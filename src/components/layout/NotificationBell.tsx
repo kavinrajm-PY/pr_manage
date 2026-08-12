@@ -18,9 +18,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Notification } from '@/types';
-import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, Timestamp, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firestore';
 import { markNotificationAsRead, markAllNotificationsAsRead } from '@/services/notifications';
+import { toast } from '@/components/ui/toast';
 
 function getNotificationIcon(type: string) {
   switch (type) {
@@ -52,6 +53,7 @@ export function NotificationBell() {
       where('userId', '==', firebaseUser.uid)
     );
 
+    let isInitial = true;
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: Notification[] = [];
       snapshot.forEach((doc) => {
@@ -73,6 +75,24 @@ export function NotificationBell() {
       // Sort in-memory to prevent indexing issues
       list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setNotifications(list);
+
+      if (!isInitial) {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            toast.add({
+              title: data.title || 'New Notification',
+              description: data.message || '',
+              type: 'info',
+              data: {
+                onClick: () => verifyAndNavigate(data.link || ''),
+              },
+            });
+          }
+        });
+      } else {
+        isInitial = false;
+      }
     });
 
     return () => unsubscribe();
@@ -80,12 +100,48 @@ export function NotificationBell() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  async function verifyAndNavigate(link: string) {
+    if (!link) return;
+    const matchTask = link.match(/\/tasks\/([^/]+)/);
+    const matchProject = link.match(/\/projects\/([^/]+)/) || link.match(/\/lead\/projects\/([^/]+)/) || link.match(/\/member\/projects\/([^/]+)/);
+
+    let exists = true;
+    try {
+      if (matchTask) {
+        const taskId = matchTask[1];
+        const docSnap = await getDoc(doc(db, 'tasks', taskId));
+        if (!docSnap.exists()) {
+          exists = false;
+        }
+      } else if (matchProject) {
+        const projectId = matchProject[1];
+        const docSnap = await getDoc(doc(db, 'projects', projectId));
+        if (!docSnap.exists()) {
+          exists = false;
+        }
+      }
+    } catch (err) {
+      console.error('Error verifying document existence', err);
+      exists = false;
+    }
+
+    if (exists) {
+      router.push(link);
+    } else {
+      toast.add({
+        title: 'Action Not Found',
+        description: 'Action not found, kindly refresh.',
+        type: 'error',
+      });
+    }
+  }
+
   async function handleNotificationClick(n: Notification) {
     setOpen(false);
     if (!n.isRead) {
       await markNotificationAsRead(n.id);
     }
-    router.push(n.link);
+    await verifyAndNavigate(n.link);
   }
 
   async function handleMarkAllRead() {

@@ -186,7 +186,13 @@ function ToastList() {
     <Toast key={toastItem.id} toast={toastItem}>
       <ToastContent>
         <ToastIcon type={toastItem.type} />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 flex-col gap-1",
+            (toastItem.data as any)?.onClick && "cursor-pointer hover:opacity-80 transition-opacity"
+          )}
+          onClick={(toastItem.data as any)?.onClick}
+        >
           <ToastTitle />
           <ToastDescription />
         </div>
