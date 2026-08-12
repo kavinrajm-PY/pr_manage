@@ -15,8 +15,9 @@ import { Project, TaskWithUsers, User } from '@/types';
 import { StatCard } from '@/components/ui/stat-card';
 import { TaskList } from '@/components/tasks/TaskList';
 import { CreateTaskDialog } from '@/components/tasks/CreateTaskDialog';
+import { Card, CardContent } from '@/components/ui/card';
 import { isOverdue } from '@/lib/utils/dates';
-import { FolderKanban, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { FolderKanban, ShieldAlert, ArrowLeft, Users } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LeadProjectDetailClient() {
@@ -172,9 +173,40 @@ export default function LeadProjectDetailClient() {
           <StatCard title="Overdue" value={overdueTasks} className={overdueTasks > 0 ? 'bg-amber-50/20 border-amber-200' : ''} />
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold">Tasks Board</h2>
-          <TaskList tasks={tasks} emptyMessage="No tasks have been created for this project yet." />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <h2 className="text-lg font-bold">Tasks Board</h2>
+            <TaskList tasks={tasks} emptyMessage="No tasks have been created for this project yet." />
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" /> Team Members ({projectMembers.length})
+            </h2>
+            <Card>
+              <CardContent className="pt-6 space-y-3">
+                {projectMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center gap-3 p-2.5 rounded-lg border bg-card hover:bg-[#7c4d96]/[0.03] hover:ring-[#7c4d96]/20 transition-all duration-300"
+                  >
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm shrink-0 uppercase">
+                      {member.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground truncate">{member.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                    </div>
+                  </div>
+                ))}
+                {projectMembers.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    No team members assigned to this project.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AppLayout>
