@@ -228,7 +228,7 @@ export default function UsersPage() {
                     setSelectedUser(user);
                     setDetailsOpen(true);
                   }}
-                  className="cursor-pointer hover:bg-muted/40 transition-colors"
+                  className="cursor-pointer"
                 >
                   <TableCell className="font-semibold text-foreground">{user.name}</TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>

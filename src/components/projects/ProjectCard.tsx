@@ -14,7 +14,7 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, hrefPrefix = '/projects' }: ProjectCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow flex flex-col justify-between h-full">
+    <Card className="flex flex-col justify-between h-full">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-lg font-bold line-clamp-1">

@@ -156,7 +156,7 @@ export default function LeadDashboard() {
               {projects.map((project) => (
                 <div
                   key={project.id}
-                  className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 border transition-colors"
+                  className="flex justify-between items-center p-2 rounded-md hover:bg-[#7c4d96]/[0.03] hover:ring-[#7c4d96]/20 border transition-colors duration-200"
                 >
                   <div className="text-sm font-semibold truncate max-w-[180px]">
                     {project.name}

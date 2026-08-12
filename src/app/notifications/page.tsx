@@ -193,7 +193,7 @@ export default function NotificationsPage() {
                   <div
                     key={n.id}
                     onClick={() => handleNotificationClick(n)}
-                    className={`flex items-start gap-4 p-4 hover:bg-muted/40 transition-colors cursor-pointer group relative ${
+                    className={`flex items-start gap-4 p-4 hover:bg-[#7c4d96]/[0.04] transition-colors cursor-pointer group relative ${
                       !n.isRead ? 'bg-primary/5 dark:bg-primary/10 font-semibold' : ''
                     }`}
                   >

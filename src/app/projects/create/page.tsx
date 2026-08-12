@@ -309,7 +309,7 @@ export default function CreateProjectPage() {
                   {teamMembers.map((member) => (
                     <label
                       key={member.id}
-                      className="flex items-center space-x-2 p-1.5 hover:bg-muted/50 rounded cursor-pointer transition-colors"
+                      className="flex items-center space-x-2 p-1.5 hover:bg-[#7c4d96]/[0.04] hover:ring-[#7c4d96]/20 rounded cursor-pointer transition-colors duration-200"
                     >
                       <input
                         type="checkbox"

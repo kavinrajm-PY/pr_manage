@@ -703,7 +703,7 @@ export default function ReportsPage() {
                 <Label className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">Task-Level Breakdown</Label>
                 <div className="space-y-2">
                   {preview.taskProgressDetails.map((item, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border bg-card hover:bg-muted/10 gap-3">
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border bg-card hover:bg-[#7c4d96]/[0.03] hover:ring-[#7c4d96]/30 transition-all duration-300 gap-3">
                       <div className="space-y-0.5">
                         <p className="font-semibold text-sm">{item.title}</p>
                         <p className="text-xs text-muted-foreground">Deadline: {formatDate(item.deadline)} | Status: <span className="font-medium text-foreground capitalize">{item.status.toLowerCase().replace('_', ' ')}</span></p>
