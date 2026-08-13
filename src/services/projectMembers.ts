@@ -123,3 +123,30 @@ export async function isProjectMember(
   const snap = await getDocs(q);
   return !snap.empty;
 }
+
+/** Get project members for multiple project IDs in chunks of 30 */
+export async function getProjectMembersByProjects(projectIds: string[]): Promise<ProjectMember[]> {
+  if (projectIds.length === 0) return [];
+  
+  const chunks: string[][] = [];
+  const chunkSize = 30;
+  for (let i = 0; i < projectIds.length; i += chunkSize) {
+    chunks.push(projectIds.slice(i, i + chunkSize));
+  }
+
+  const results: ProjectMember[] = [];
+  await Promise.all(
+    chunks.map(async (chunk) => {
+      const q = query(
+        collection(db, COLLECTION),
+        where('projectId', 'in', chunk)
+      );
+      const snap = await getDocs(q);
+      snap.docs.forEach((d) => {
+        results.push(toMember(d.data() as Record<string, unknown>, d.id));
+      });
+    })
+  );
+  return results;
+}
+

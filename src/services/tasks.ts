@@ -14,6 +14,7 @@ import {
   doc,
   serverTimestamp,
   Timestamp,
+  orderBy,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firestore';
 import { Task, TaskStatus, TaskPriority } from '@/types';
@@ -254,3 +255,64 @@ export async function updateTask(
 export async function deleteTask(taskId: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTION, taskId));
 }
+
+/** Get all tasks for multiple project IDs in chunks of 30 */
+export async function getTasksByProjects(projectIds: string[]): Promise<Task[]> {
+  if (projectIds.length === 0) return [];
+  
+  const chunks: string[][] = [];
+  const chunkSize = 30;
+  for (let i = 0; i < projectIds.length; i += chunkSize) {
+    chunks.push(projectIds.slice(i, i + chunkSize));
+  }
+
+  const results: Task[] = [];
+  await Promise.all(
+    chunks.map(async (chunk) => {
+      const q = query(
+        collection(db, COLLECTION),
+        where('projectId', 'in', chunk)
+      );
+      const snap = await getDocs(q);
+      snap.docs.forEach((d) => {
+        results.push(toTask(d.data() as Record<string, unknown>, d.id));
+      });
+    })
+  );
+  return results;
+}
+
+/** Get progress history logs for a user within a date range, ordered by updatedAt ascending */
+export async function getProgressHistoryByUserAndRange(
+  userId: string,
+  fromDateStr: string,
+  toDateStr: string
+): Promise<any[]> {
+  const fromDate = new Date(fromDateStr);
+  const toDate = new Date(toDateStr + 'T23:59:59.999Z');
+
+  const q = query(
+    collection(db, 'taskProgressHistory'),
+    where('updatedBy', '==', userId),
+    where('updatedAt', '>=', Timestamp.fromDate(fromDate)),
+    where('updatedAt', '<=', Timestamp.fromDate(toDate)),
+    orderBy('updatedAt', 'asc')
+  );
+
+  const snap = await getDocs(q);
+  const toISO = (v: any) => (v instanceof Timestamp ? v.toDate().toISOString() : v as string);
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      taskId: data.taskId,
+      previousProgress: data.previousProgress,
+      newProgress: data.newProgress,
+      previousStatus: data.previousStatus,
+      newStatus: data.newStatus,
+      updatedBy: data.updatedBy,
+      updatedAt: toISO(data.updatedAt),
+    };
+  });
+}
+

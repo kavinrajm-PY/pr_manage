@@ -5,9 +5,9 @@
 // New strategy: 1 parallel batch for all memberships + 1 getUsersByIds for all unique users + 1 parallel batch for all tasks = ~3 round trips total
 
 import { Project, ProjectWithStats, User, Task } from '@/types';
-import { getProjectMembers } from './projectMembers';
+import { getProjectMembers, getProjectMembersByProjects } from './projectMembers';
 import { getUsersByIds } from './users';
-import { getTasksByProject } from './tasks';
+import { getTasksByProject, getTasksByProjects } from './tasks';
 import { isOverdue } from '@/lib/utils/dates';
 
 function buildStats(tasks: Task[], teamLead: User | null, teamMembers: User[]): Omit<ProjectWithStats, keyof Project> {
@@ -65,35 +65,42 @@ export async function enrichProject(project: Project): Promise<ProjectWithStats>
 export async function enrichProjects(projects: Project[]): Promise<ProjectWithStats[]> {
   if (projects.length === 0) return [];
 
-  // Step 1: Fetch all memberships for all projects in parallel
-  const allMemberships = await Promise.all(
-    projects.map((p) => getProjectMembers(p.id).then((m) => ({ projectId: p.id, memberships: m })))
-  );
+  const projectIds = projects.map((p) => p.id);
+
+  // Step 1: Fetch all memberships for all projects in a single batch pass (chunked)
+  const memberships = await getProjectMembersByProjects(projectIds);
+  const membershipsByProject: Record<string, typeof memberships> = {};
+  memberships.forEach((m) => {
+    if (!membershipsByProject[m.projectId]) {
+      membershipsByProject[m.projectId] = [];
+    }
+    membershipsByProject[m.projectId].push(m);
+  });
 
   // Step 2: Collect ALL unique userIds across every project, then fetch in ONE call
-  const uniqueUserIds = Array.from(
-    new Set(allMemberships.flatMap((pm) => pm.memberships.map((m) => m.userId)))
-  );
+  const uniqueUserIds = Array.from(new Set(memberships.map((m) => m.userId)));
   const allUsers = await getUsersByIds(uniqueUserIds);
   const usersById: Record<string, User> = {};
   allUsers.forEach((u) => { usersById[u.id] = u; });
 
-  // Step 3: Fetch all tasks for all projects in parallel
-  const allTasks = await Promise.all(
-    projects.map((p) => getTasksByProject(p.id).then((t) => ({ projectId: p.id, tasks: t })))
-  );
+  // Step 3: Fetch all tasks for all projects in a single batch pass (chunked)
+  const tasks = await getTasksByProjects(projectIds);
   const tasksByProject: Record<string, Task[]> = {};
-  allTasks.forEach(({ projectId, tasks }) => { tasksByProject[projectId] = tasks; });
+  tasks.forEach((t) => {
+    if (!tasksByProject[t.projectId]) {
+      tasksByProject[t.projectId] = [];
+    }
+    tasksByProject[t.projectId].push(t);
+  });
 
   // Step 4: Assemble results — pure in-memory work, no more Firestore calls
   return projects.map((project) => {
-    const pm = allMemberships.find((pm) => pm.projectId === project.id);
-    const memberships = pm?.memberships ?? [];
-    const tasks = tasksByProject[project.id] ?? [];
+    const projectMemberships = membershipsByProject[project.id] ?? [];
+    const projectTasks = tasksByProject[project.id] ?? [];
 
     let teamLead: User | null = null;
     const teamMembers: User[] = [];
-    memberships.forEach((m) => {
+    projectMemberships.forEach((m) => {
       const u = usersById[m.userId];
       if (u) {
         if (m.role === 'TEAM_LEAD') teamLead = u;
@@ -101,6 +108,6 @@ export async function enrichProjects(projects: Project[]): Promise<ProjectWithSt
       }
     });
 
-    return { ...project, ...buildStats(tasks, teamLead, teamMembers) };
+    return { ...project, ...buildStats(projectTasks, teamLead, teamMembers) };
   });
 }

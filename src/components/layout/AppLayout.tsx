@@ -5,6 +5,7 @@
 // Renders a skeleton shell immediately (no blank screen) while Firebase Auth resolves.
 
 import { ReactNode } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Sidebar } from './Sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -94,10 +95,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         <header className="flex h-14 items-center justify-between border-b bg-card px-4 md:px-6">
           <div className="flex items-center gap-2">
             <div className="md:hidden flex items-center gap-2">
-              <img
+              <Image
                 src="/logo.png"
                 alt="Praskla Logo"
-                className="w-9 h-9 object-contain flex-shrink-0"
+                width={36}
+                height={36}
+                className="object-contain flex-shrink-0"
               />
               <span className="text-sm font-bold leading-tight text-foreground">PY Manage</span>
             </div>

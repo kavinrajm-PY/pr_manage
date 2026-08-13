@@ -4,6 +4,7 @@
 // Role-aware sidebar navigation. Renders different links based on user role.
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { signOut } from '@/lib/firebase/auth';
@@ -73,10 +74,12 @@ export function Sidebar() {
     <aside className="flex flex-col w-60 min-h-screen border-r bg-card px-3 py-4">
       {/* Brand - Horizontal Flex Row */}
       <div className="flex items-center gap-4 px-1 mb-4 border-b border-muted/50 pb-4 min-w-0">
-        <img
+        <Image
           src="/logo.png"
           alt="Praskla Logo"
-          className="w-12 h-12 object-contain flex-shrink-0"
+          width={48}
+          height={48}
+          className="object-contain flex-shrink-0"
         />
         <div className="-ml-2.5 flex flex-col justify-center min-w-0 pr-1">
           <span className="text-base font-extrabold tracking-tight text-foreground leading-tight truncate">

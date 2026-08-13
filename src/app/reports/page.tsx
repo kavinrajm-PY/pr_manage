@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { getUsersByRole } from '@/services/users';
-import { getTasksByAssignee, getAllProgressHistory } from '@/services/tasks';
+import { getTasksByAssignee, getProgressHistoryByUserAndRange } from '@/services/tasks';
 import { getApprovedLeavesInRange } from '@/services/leaveRequests';
 import { User, Task, LeaveRequest } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -365,7 +365,7 @@ export default function ReportsPage() {
       const [allTasks, allLeaves, progressHistory] = await Promise.all([
         getTasksByAssignee(selectedUserId),
         getApprovedLeavesInRange(selectedUserId, range.from, range.to),
-        getAllProgressHistory(),
+        getProgressHistoryByUserAndRange(selectedUserId, range.from, range.to),
       ]);
 
       const rangeStartStr = range.from;
