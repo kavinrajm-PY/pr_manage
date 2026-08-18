@@ -22,7 +22,7 @@ export default function MemberProjectsPage() {
   const [projects, setProjects] = useState<ProjectWithStats[]>([]);
 
   useEffect(() => {
-    if (!loading && role !== 'TEAM_MEMBER') {
+    if (!loading && role !== 'TEAM_MEMBER' && role !== 'TEAM_LEAD') {
       router.push('/login');
     }
   }, [role, loading, router]);
@@ -54,7 +54,7 @@ export default function MemberProjectsPage() {
       }
     }
 
-    if (role === 'TEAM_MEMBER') {
+    if (role === 'TEAM_MEMBER' || role === 'TEAM_LEAD') {
       loadProjects();
     }
   }, [role, firebaseUser]);
@@ -69,13 +69,13 @@ export default function MemberProjectsPage() {
     );
   }
 
-  if (role !== 'TEAM_MEMBER') {
+  if (role !== 'TEAM_MEMBER' && role !== 'TEAM_LEAD') {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-2">
           <ShieldAlert className="h-10 w-10 text-destructive" />
           <h2 className="text-xl font-bold">Access Denied</h2>
-          <p className="text-muted-foreground">Only Team Members can access this page.</p>
+          <p className="text-muted-foreground">Only Team Members and Team Leads can access this page.</p>
         </div>
       </AppLayout>
     );

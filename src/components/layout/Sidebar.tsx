@@ -40,7 +40,9 @@ function pmNavItems(): NavItem[] {
 function leadNavItems(): NavItem[] {
   return [
     { href: '/lead/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { href: '/lead/projects', label: 'My Projects', icon: <FolderKanban className="w-4 h-4" /> },
+    { href: '/lead/projects', label: 'Lead Projects', icon: <FolderKanban className="w-4 h-4" /> },
+    { href: '/member/projects', label: 'Member Projects', icon: <FolderKanban className="w-4 h-4" /> },
+    { href: '/member/tasks', label: 'My Member Tasks', icon: <CheckSquare className="w-4 h-4" /> },
   ];
 }
 

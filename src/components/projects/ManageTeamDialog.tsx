@@ -61,7 +61,7 @@ export function ManageTeamDialog({ project, currentLead, currentMembers, onTeamU
           : activeLeads;
         setAllLeads(leadsWithCurrent);
 
-        const activeMembers = members.filter((m) => m.isActive !== false);
+        const activeMembers = [...members, ...leads].filter((m) => m.isActive !== false);
         const memberIds = new Set(activeMembers.map((m) => m.id));
         const membersWithCurrent = [
           ...activeMembers,
@@ -224,7 +224,11 @@ export function ManageTeamDialog({ project, currentLead, currentMembers, onTeamU
               <select
                 id="lead-select"
                 value={selectedLeadId}
-                onChange={(e) => setSelectedLeadId(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedLeadId(val);
+                  setSelectedMemberIds((prev) => prev.filter((id) => id !== val));
+                }}
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer font-medium"
               >
                 <option value="">Select Team Lead</option>
@@ -246,7 +250,9 @@ export function ManageTeamDialog({ project, currentLead, currentMembers, onTeamU
                 Assign Team Members ({selectedMemberIds.length} selected)
               </Label>
               <div className="max-h-60 overflow-y-auto border rounded-md p-3 divide-y divide-muted/50 bg-card">
-                {allMembers.map((member) => {
+                {allMembers
+                  .filter((member) => member.id !== selectedLeadId)
+                  .map((member) => {
                   const isChecked = selectedMemberIds.includes(member.id);
                   const isInactive = member.isActive === false;
                   return (

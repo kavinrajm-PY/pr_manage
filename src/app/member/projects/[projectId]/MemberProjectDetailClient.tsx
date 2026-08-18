@@ -34,7 +34,7 @@ export default function MemberProjectDetailClient() {
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    if (!loading && role !== 'TEAM_MEMBER') {
+    if (!loading && role !== 'TEAM_MEMBER' && role !== 'TEAM_LEAD') {
       router.push('/login');
     }
   }, [role, loading, router]);
@@ -104,7 +104,7 @@ export default function MemberProjectDetailClient() {
       }
     }
 
-    if (role === 'TEAM_MEMBER') {
+    if (role === 'TEAM_MEMBER' || role === 'TEAM_LEAD') {
       loadProjectDetails();
     }
   }, [projectId, role, firebaseUser, router]);
@@ -127,7 +127,7 @@ export default function MemberProjectDetailClient() {
     );
   }
 
-  if (role !== 'TEAM_MEMBER' || !authorized || !project) {
+  if ((role !== 'TEAM_MEMBER' && role !== 'TEAM_LEAD') || !authorized || !project) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-2">
