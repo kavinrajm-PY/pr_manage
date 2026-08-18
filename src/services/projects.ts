@@ -107,7 +107,47 @@ export async function updateProject(
   });
 }
 
-/** Delete a project and its document (PM only) */
-export async function deleteProject(id: string): Promise<void> {
-  await deleteDoc(doc(db, COLLECTION, id));
+/** Delete a project and its document, along with its tasks, comments, progress history, and memberships (PM only) */
+export async function deleteProject(projectId: string): Promise<void> {
+  // 1. Fetch all tasks for this project
+  const tasksQ = query(collection(db, 'tasks'), where('projectId', '==', projectId));
+  const tasksSnap = await getDocs(tasksQ);
+  const taskIds = tasksSnap.docs.map((d) => d.id);
+
+  const deletePromises: Promise<void>[] = [];
+
+  if (taskIds.length > 0) {
+    // 2. Fetch and delete comments and progress history for all tasks
+    for (const taskId of taskIds) {
+      const commentsQ = query(collection(db, 'comments'), where('taskId', '==', taskId));
+      const commentsSnap = await getDocs(commentsQ);
+      commentsSnap.docs.forEach((d) => {
+        deletePromises.push(deleteDoc(d.ref));
+      });
+
+      const historyQ = query(collection(db, 'taskProgressHistory'), where('taskId', '==', taskId));
+      const historySnap = await getDocs(historyQ);
+      historySnap.docs.forEach((d) => {
+        deletePromises.push(deleteDoc(d.ref));
+      });
+    }
+
+    // Delete the task documents
+    tasksSnap.docs.forEach((d) => {
+      deletePromises.push(deleteDoc(d.ref));
+    });
+  }
+
+  // 3. Get all project memberships and delete them
+  const membershipsQ = query(collection(db, 'projectMembers'), where('projectId', '==', projectId));
+  const membershipsSnap = await getDocs(membershipsQ);
+  membershipsSnap.docs.forEach((d) => {
+    deletePromises.push(deleteDoc(d.ref));
+  });
+
+  // Run all cascading deletions in parallel
+  await Promise.all(deletePromises);
+
+  // 4. Finally, delete the project document itself
+  await deleteDoc(doc(db, COLLECTION, projectId));
 }

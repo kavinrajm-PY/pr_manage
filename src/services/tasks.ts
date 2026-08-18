@@ -253,6 +253,20 @@ export async function updateTask(
 
 /** Delete a task (Team Lead only) */
 export async function deleteTask(taskId: string): Promise<void> {
+  // 1. Fetch and delete comments for this task
+  const commentsQ = query(collection(db, 'comments'), where('taskId', '==', taskId));
+  const commentsSnap = await getDocs(commentsQ);
+  const deleteComments = commentsSnap.docs.map((d) => deleteDoc(d.ref));
+
+  // 2. Fetch and delete progress history for this task
+  const historyQ = query(collection(db, 'taskProgressHistory'), where('taskId', '==', taskId));
+  const historySnap = await getDocs(historyQ);
+  const deleteHistory = historySnap.docs.map((d) => deleteDoc(d.ref));
+
+  // Wait for all related documents to be deleted in parallel
+  await Promise.all([...deleteComments, ...deleteHistory]);
+
+  // 3. Delete the task document itself
   await deleteDoc(doc(db, COLLECTION, taskId));
 }
 

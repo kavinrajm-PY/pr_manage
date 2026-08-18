@@ -105,7 +105,11 @@ service cloud.firestore {
         )
       );
       
-      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        hasProjectMembership(get(/databases/$(database)/documents/tasks/$(resource.data.taskId)).data.get('projectId', ''))
+      );
     }
 
     // ─── collection: notifications ─────────────────────────────────────────
@@ -131,6 +135,10 @@ service cloud.firestore {
     match /taskProgressHistory/{historyId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if isAuthenticated() && (
+        isProjectManager() ||
+        hasProjectMembership(get(/databases/$(database)/documents/tasks/$(resource.data.taskId)).data.get('projectId', ''))
+      );
     }
   }
 }
