@@ -111,11 +111,11 @@ export default function TaskDetailClient() {
         setAssignee(assigneeData);
         setCreator(creatorData);
 
-        // 4a. Load project members for reassign (Team Lead only — active members only)
+        // 4a. Load project members for reassign (Team Lead only — active members and leads)
         if (role === 'TEAM_LEAD' && projectData) {
           const memberships = await getProjectMembers(taskData.projectId);
           const memberUids = memberships
-            .filter((m) => m.role === 'TEAM_MEMBER')
+            .filter((m) => m.role === 'TEAM_MEMBER' || m.role === 'TEAM_LEAD')
             .map((m) => m.userId);
           const members = await getUsersByIds(memberUids);
           setProjectMembers(members.filter((u) => u.isActive !== false));
@@ -572,8 +572,8 @@ export default function TaskDetailClient() {
                 </div>
               )}
 
-              {/* ── Completion % slider (Team Member, IN_PROGRESS only) ─────────── */}
-              {role === 'TEAM_MEMBER' && status === 'IN_PROGRESS' && (
+              {/* ── Completion % slider (Team Member or assigned Team Lead, IN_PROGRESS only) ── */}
+              {(role === 'TEAM_MEMBER' || (role === 'TEAM_LEAD' && task.assignedTo === firebaseUser?.uid)) && status === 'IN_PROGRESS' && (
                 <div className="space-y-3 pt-3 border-t">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
                     <TrendingUp className="h-3.5 w-3.5" /> Completion Progress

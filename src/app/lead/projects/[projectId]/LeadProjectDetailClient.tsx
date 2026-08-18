@@ -70,10 +70,10 @@ export default function LeadProjectDetailClient() {
         const uids = memberships.map((m) => m.userId);
         const users = await getUsersByIds(uids);
 
-        // Only active members can be assigned tasks
+        // Only active members and team leads can be assigned tasks
         const membersProfiles = users.filter((u) =>
           u.isActive !== false &&
-          memberships.some((m) => m.userId === u.id && m.role === 'TEAM_MEMBER')
+          memberships.some((m) => m.userId === u.id && (m.role === 'TEAM_MEMBER' || m.role === 'TEAM_LEAD'))
         );
         setProjectMembers(membersProfiles);
 

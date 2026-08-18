@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { User, Task, Project } from '@/types';
+import { User, Task, Project, UserRole } from '@/types';
 import { getTasksByAssignee } from '@/services/tasks';
 import { getAllProjects } from '@/services/projects';
 import { updateUser } from '@/services/users';
@@ -136,6 +136,30 @@ export function UserDetailsDialog({ user, isOpen, onClose, onUserUpdated }: User
     }
   }
 
+  async function handleRoleChange(newRole: UserRole) {
+    if (!user) return;
+    const userId = user.id;
+    const userName = user.name;
+    setUpdating(true);
+    try {
+      await updateUser(userId, { role: newRole });
+      onUserUpdated({ ...user, role: newRole });
+      toastRef.current({
+        title: 'Role Updated',
+        description: `${userName}'s role is now set to ${newRole.replace(/_/g, ' ').toLowerCase()}.`,
+      });
+    } catch (err: any) {
+      console.error('Failed to update role', err);
+      toastRef.current({
+        title: 'Update Failed',
+        description: err?.message || 'Could not update role.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   const filteredTasks =
     selectedProjectId === 'ALL'
       ? tasks
@@ -172,9 +196,16 @@ export function UserDetailsDialog({ user, isOpen, onClose, onUserUpdated }: User
                     <Mail className="w-3 h-3" /> {user.email}
                     <span className="mx-1 text-muted-foreground/50">•</span>
                     <ShieldCheck className="w-3 h-3 text-primary" />
-                    <span className="capitalize font-semibold text-primary">
-                      {user.role.replace(/_/g, ' ').toLowerCase()}
-                    </span>
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(e.target.value as UserRole)}
+                      disabled={updating}
+                      className="bg-transparent border-0 font-semibold text-primary capitalize outline-none cursor-pointer hover:underline text-xs p-0 m-0"
+                    >
+                      <option value="PROJECT_MANAGER" className="text-foreground">Project Manager</option>
+                      <option value="TEAM_LEAD" className="text-foreground">Team Lead</option>
+                      <option value="TEAM_MEMBER" className="text-foreground">Team Member</option>
+                    </select>
                   </DialogDescription>
                 </div>
               </div>

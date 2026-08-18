@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Users, ShieldAlert } from 'lucide-react';
+import { Plus, Users, ShieldAlert, UserCircle2, Mail, Key, ShieldCheck } from 'lucide-react';
 import { UserDetailsDialog } from '@/components/users/UserDetailsDialog';
 import { useRouter } from 'next/navigation';
 
@@ -150,58 +150,73 @@ export default function UsersPage() {
                   Create credentials and assign a role to a new team member.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleCreateUser} className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Rahul Sharma"
-                    required
-                  />
+              <form onSubmit={handleCreateUser} className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Full Name</Label>
+                  <div className="relative">
+                    <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Rahul Sharma"
+                      required
+                      className="pl-9 h-10 rounded-xl"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Work Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. rahul@company.com"
-                    required
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Work Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="e.g. rahul@company.com"
+                      required
+                      className="pl-9 h-10 rounded-xl"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Temporary Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min 6 characters"
-                    minLength={6}
-                    required
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Temporary Password</Label>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Min 6 characters"
+                      minLength={6}
+                      required
+                      className="pl-9 h-10 rounded-xl"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <select
-                    id="role"
-                    value={userRole}
-                    onChange={(e) => setUserRole(e.target.value as UserRole)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 cursor-pointer"
-                  >
-                    <option value="PROJECT_MANAGER">Project Manager</option>
-                    <option value="TEAM_LEAD">Team Lead</option>
-                    <option value="TEAM_MEMBER">Team Member</option>
-                  </select>
+                <div className="space-y-1.5">
+                  <Label htmlFor="role" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Role</Label>
+                  <div className="relative">
+                    <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <select
+                      id="role"
+                      value={userRole}
+                      onChange={(e) => setUserRole(e.target.value as UserRole)}
+                      className="flex h-10 w-full rounded-xl border border-input bg-background pl-9 pr-3 py-1.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 cursor-pointer"
+                    >
+                      <option value="PROJECT_MANAGER">Project Manager</option>
+                      <option value="TEAM_LEAD">Team Lead</option>
+                      <option value="TEAM_MEMBER">Team Member</option>
+                    </select>
+                  </div>
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)} className="rounded-xl">
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={submitting}>
+                  <Button type="submit" disabled={submitting} className="rounded-xl" style={{ background: 'linear-gradient(135deg, #58326A, #7c4d96)' }}>
                     {submitting ? 'Creating...' : 'Create Account'}
                   </Button>
                 </DialogFooter>
