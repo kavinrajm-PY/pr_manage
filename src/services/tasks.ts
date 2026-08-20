@@ -307,15 +307,12 @@ export async function getProgressHistoryByUserAndRange(
 
   const q = query(
     collection(db, 'taskProgressHistory'),
-    where('updatedBy', '==', userId),
-    where('updatedAt', '>=', Timestamp.fromDate(fromDate)),
-    where('updatedAt', '<=', Timestamp.fromDate(toDate)),
-    orderBy('updatedAt', 'asc')
+    where('updatedBy', '==', userId)
   );
 
   const snap = await getDocs(q);
   const toISO = (v: any) => (v instanceof Timestamp ? v.toDate().toISOString() : v as string);
-  return snap.docs.map((d) => {
+  const all = snap.docs.map((d) => {
     const data = d.data();
     return {
       id: d.id,
@@ -328,5 +325,14 @@ export async function getProgressHistoryByUserAndRange(
       updatedAt: toISO(data.updatedAt),
     };
   });
+
+  const fromMs = fromDate.getTime();
+  const toMs = toDate.getTime();
+  const filtered = all.filter((h) => {
+    const time = new Date(h.updatedAt).getTime();
+    return time >= fromMs && time <= toMs;
+  });
+
+  return filtered.sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
 }
 

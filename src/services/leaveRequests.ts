@@ -100,12 +100,12 @@ export async function getApprovedLeavesInRange(
 ): Promise<LeaveRequest[]> {
   const q = query(
     collection(db, COLLECTION),
-    where('userId', '==', userId),
-    where('status', '==', 'APPROVED')
+    where('userId', '==', userId)
   );
   const snap = await getDocs(q);
   const all = snap.docs.map((d) => toLeaveRequest(d.data() as Record<string, unknown>, d.id));
   return all.filter((lr) => {
+    if (lr.status !== 'APPROVED') return false;
     const start = new Date(lr.startDate).getTime();
     const fromTs = new Date(from).getTime();
     const toTs = new Date(to).getTime();
