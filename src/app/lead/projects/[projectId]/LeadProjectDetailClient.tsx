@@ -15,6 +15,7 @@ import { Project, TaskWithUsers, User } from '@/types';
 import { StatCard } from '@/components/ui/stat-card';
 import { TaskList } from '@/components/tasks/TaskList';
 import { CreateTaskDialog } from '@/components/tasks/CreateTaskDialog';
+import { BunchTasksDialog } from '@/components/tasks/BunchTasksDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { isOverdue } from '@/lib/utils/dates';
 import { FolderKanban, ShieldAlert, ArrowLeft, Users } from 'lucide-react';
@@ -108,6 +109,18 @@ export default function LeadProjectDetailClient() {
     setTasks((prev) => [enriched, ...prev]);
   };
 
+  const handleTasksCreated = (newTasks: any[]) => {
+    const enriched: TaskWithUsers[] = newTasks.map((newTask) => {
+      const assignee = projectMembers.find((u) => u.id === newTask.assignedTo) || null;
+      return {
+        ...newTask,
+        assignedToUser: assignee,
+        createdByUser: null,
+      };
+    });
+    setTasks((prev) => [...enriched, ...prev]);
+  };
+
   const totalTasks = tasks.length;
   const todoTasks = tasks.filter((t) => t.status === 'TODO').length;
   const inProgressTasks = tasks.filter((t) => t.status === 'IN_PROGRESS').length;
@@ -157,11 +170,18 @@ export default function LeadProjectDetailClient() {
             <p className="text-muted-foreground">{project.description}</p>
           </div>
 
-          <CreateTaskDialog
-            project={project}
-            projectMembers={projectMembers}
-            onTaskCreated={handleTaskCreated}
-          />
+          <div className="flex items-center gap-3">
+            <BunchTasksDialog
+              project={project}
+              projectMembers={projectMembers}
+              onTasksCreated={handleTasksCreated}
+            />
+            <CreateTaskDialog
+              project={project}
+              projectMembers={projectMembers}
+              onTaskCreated={handleTaskCreated}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">

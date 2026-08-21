@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Setup Firebase Emulator",
+    "description": "Configure local Firestore and Auth emulators for offline development and testing.",
+    "assignedTo": "Alice Smith",
+    "priority": "HIGH",
+    "deadline": "2026-08-25"
+  },
+  {
+    "title": "Implement User Authentication Flow",
+    "description": "Integrate Firebase Authentication with Next.js middleware and client contexts.",
+    "assignedTo": "bob.jones@company.com",
+    "priority": "URGENT",
+    "deadline": "2026-08-26"
+  },
+  {
+    "title": "Design Task Details Page",
+    "description": "Create a responsive layout showing task info, assignee, priority, deadline, and progress history.",
+    "assignedTo": "Charlie Davis",
+    "priority": "MEDIUM",
+    "deadline": "2026-08-27"
+  },
+  {
+    "title": "Implement Commenting System",
+    "description": "Allow team leads and members to add comments on individual tasks with live updates.",
+    "assignedTo": "charlie.davis@company.com",
+    "priority": "LOW",
+    "deadline": "2026-08-28"
+  },
+  {
+    "title": "Export Reports as PDF",
+    "description": "Generate summary reports of project tasks, statuses, and performance using jsPDF.",
+    "assignedTo": "Alice Smith",
+    "priority": "HIGH",
+    "deadline": "2026-08-29"
+  }
+]
