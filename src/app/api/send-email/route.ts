@@ -30,7 +30,17 @@ export async function POST(req: NextRequest) {
       ...details // Spread variables at the top level
     };
 
-    console.log(`Sending email to ${to} with slug ${slug} using endpoint ${smtpApiUrl}`);
+    // Resolve the incoming client's origin to forward it to the mail server
+    const clientOrigin = req.headers.get('origin') || req.headers.get('referer') || 'http://localhost:3000';
+    let origin = 'http://localhost:3000';
+    if (clientOrigin.startsWith('http')) {
+      try {
+        const parsedUrl = new URL(clientOrigin);
+        origin = parsedUrl.origin;
+      } catch (_) {}
+    }
+
+    console.log(`Sending email to ${to} with slug ${slug} using endpoint ${smtpApiUrl} and origin ${origin}`);
 
     const response = await fetch(smtpApiUrl, {
       method: 'POST',
@@ -38,7 +48,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'x-api-key': apiKey,
-        'Origin': 'http://localhost:3000',
+        'Origin': origin,
       },
       body: JSON.stringify(payload),
     });
