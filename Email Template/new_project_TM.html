@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Project Assignment</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f5f3f6;
+      margin: 0;
+      padding: 20px 12px;
+      color: #1f1722;
+    }
+    .email-container {
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #e8e1ea;
+    }
+    .header {
+      background: #371345;
+      padding: 34px 28px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .brand {
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      margin: 0;
+    }
+    .header-subtitle {
+      font-size: 12px;
+      color: #dfcde4;
+      margin-top: 7px;
+      letter-spacing: 0.8px;
+    }
+    .body {
+      padding: 34px 36px;
+    }
+    .greeting {
+      font-size: 19px;
+      font-weight: 700;
+      color: #371345;
+      margin-bottom: 9px;
+    }
+    .message {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #5b5360;
+      margin-bottom: 24px;
+    }
+    .project-banner {
+      background: #371345;
+      border-radius: 12px;
+      padding: 22px;
+      color: #ffffff;
+      margin-bottom: 18px;
+    }
+    .project-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 800;
+      color: #d9c4df;
+      margin-bottom: 7px;
+    }
+    .project-name {
+      font-size: 23px;
+      font-weight: 800;
+      margin: 0;
+    }
+    .description {
+      background: #f8f5f9;
+      border: 1px solid #e8dfea;
+      border-radius: 10px;
+      padding: 17px 19px;
+      margin-bottom: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #514956;
+    }
+    .description-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #371345;
+      margin-bottom: 6px;
+    }
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #e8e1ea;
+    }
+    .details-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0ebf2;
+      font-size: 13px;
+    }
+    .details-table td.label {
+      width: 32%;
+      font-weight: 700;
+      color: #665d69;
+      background: #fcfbfc;
+    }
+    .details-table td.value {
+      color: #28202b;
+      font-weight: 600;
+    }
+    .member-note {
+      margin-top: 22px;
+      padding: 15px 18px;
+      background: #f7f2f8;
+      border-left: 4px solid #371345;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #594d5d;
+    }
+    .footer {
+      background: #371345;
+      padding: 19px;
+      text-align: center;
+      color: #d9cbdc;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+
+```
+<div class="header">
+  <h1 class="brand">PY MANAGE</h1>
+  <div class="header-subtitle">PROJECT COLLABORATION &amp; DELIVERY</div>
+</div>
+
+<div class="body">
+
+  <div class="greeting">Hello {{fullName}},</div>
+
+  <p class="message">
+    You have been added as a <strong>Team Member</strong> to a new project.
+    Please review the project details below and stay connected with your
+    Team Lead for upcoming tasks and activities.
+  </p>
+
+  <div class="project-banner">
+    <div class="project-label">New Project</div>
+    <h2 class="project-name">{{projectName}}</h2>
+  </div>
+
+  <div class="description">
+    <div class="description-title">Project Description</div>
+    {{projectDescription}}
+  </div>
+
+  <table class="details-table">
+    <tr>
+      <td class="label">Start Date</td>
+      <td class="value">{{startDate}}</td>
+    </tr>
+    <tr>
+      <td class="label">Deadline</td>
+      <td class="value">{{deadline}}</td>
+    </tr>
+    <tr>
+      <td class="label">Team Lead</td>
+      <td class="value">{{teamLead}}</td>
+    </tr>
+  </table>
+
+  <div class="member-note">
+    <strong>Next Step:</strong> Log in to the Project Management Portal
+    to view your project and stay updated on tasks assigned to you.
+  </div>
+
+</div>
+
+<div class="footer">
+  PY Manage<br/>
+  This is an automated notification. Please do not reply.
+</div>
+```
+
+  </div>
+</body>
+</html>

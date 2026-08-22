@@ -11,6 +11,7 @@ import { getUsersByRole } from '@/services/users';
 import { createProject } from '@/services/projects';
 import { addProjectMember } from '@/services/projectMembers';
 import { createNotification } from '@/services/notifications';
+import { sendNewProjectTLNotification, sendNewProjectTMNotification } from '@/services/email';
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -172,6 +173,37 @@ export default function CreateProjectPage() {
       Promise.all(notifyPromises).catch((err) =>
         console.error('Failed to send project assignment notifications', err)
       );
+
+      // 6. Send Email Notifications to Lead and Members
+      const leadUser = teamLeads.find((u) => u.id === selectedLeadId);
+      const leadName = leadUser ? leadUser.name : 'Unknown';
+      const assignedMembers = selectedMemberIds
+        .map((memberId) => teamMembers.find((u) => u.id === memberId))
+        .filter(Boolean) as User[];
+
+      if (leadUser) {
+        sendNewProjectTLNotification({
+          email: leadUser.email,
+          fullName: leadUser.name,
+          projectName: name,
+          projectDescription: description,
+          startDate,
+          deadline,
+          teamLeadName: leadName,
+        }).catch((err) => console.error('Failed to send Team Lead assignment email', err));
+      }
+
+      assignedMembers.forEach((member) => {
+        sendNewProjectTMNotification({
+          email: member.email,
+          fullName: member.name,
+          projectName: name,
+          projectDescription: description,
+          startDate,
+          deadline,
+          teamLeadName: leadName,
+        }).catch((err) => console.error('Failed to send Team Member assignment email', err));
+      });
 
       toast({
         title: 'Project Created',

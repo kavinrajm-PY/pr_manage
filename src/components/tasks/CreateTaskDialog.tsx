@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { createTask } from '@/services/tasks';
 import { createNotification } from '@/services/notifications';
+import { sendTaskAssignedNotification } from '@/services/email';
 import { Task, TaskPriority, User, Project } from '@/types';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +30,7 @@ interface CreateTaskDialogProps {
 }
 
 export function CreateTaskDialog({ project, projectMembers, onTaskCreated }: CreateTaskDialogProps) {
-  const { firebaseUser } = useAuth();
+  const { firebaseUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -37,6 +38,7 @@ export function CreateTaskDialog({ project, projectMembers, onTaskCreated }: Cre
   const [assignedTo, setAssignedTo] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [deadline, setDeadline] = useState('');
+  const [notifyViaEmail, setNotifyViaEmail] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Only active members can be assigned tasks
@@ -104,12 +106,37 @@ export function CreateTaskDialog({ project, projectMembers, onTaskCreated }: Cre
         link: `/tasks/${task.id}`,
       }).catch((err) => console.error('Failed to create task notification', err));
 
+      if (notifyViaEmail) {
+        const selectedMember = projectMembers.find((m) => m.id === assignedTo);
+        if (selectedMember) {
+          sendTaskAssignedNotification({
+            email: selectedMember.email,
+            fullName: selectedMember.name,
+            taskTitle: title,
+            taskDescription: description,
+            projectName: project.name,
+            createdDate: new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
+            deadline: new Date(deadline).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
+            createdByName: userProfile?.name || 'Your Team Lead',
+          }).catch((err) => console.error('Failed to send task assignment email', err));
+        }
+      }
+
       // Reset form
       setTitle('');
       setDescription('');
       setAssignedTo('');
       setPriority('MEDIUM');
       setDeadline('');
+      setNotifyViaEmail(false);
       setOpen(false);
 
       toast({
@@ -218,6 +245,19 @@ export function CreateTaskDialog({ project, projectMembers, onTaskCreated }: Cre
               onChange={(e) => setDeadline(e.target.value)}
               required
             />
+          </div>
+
+          <div className="flex items-center space-x-2 py-1.5">
+            <input
+              type="checkbox"
+              id="notifyViaEmail"
+              checked={notifyViaEmail}
+              onChange={(e) => setNotifyViaEmail(e.target.checked)}
+              className="h-4.5 w-4.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+            />
+            <Label htmlFor="notifyViaEmail" className="text-sm font-medium cursor-pointer">
+              Notify via Email
+            </Label>
           </div>
 
           <DialogFooter className="pt-4">

@@ -6,10 +6,17 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { firebaseApp, getSecondaryApp } from './config';
 
 const auth = getAuth(firebaseApp);
+
+/** Send password reset email */
+export async function sendPasswordReset(email: string) {
+  return sendPasswordResetEmail(auth, email);
+}
+
 
 /** Sign in with email and password */
 export async function signIn(email: string, password: string) {

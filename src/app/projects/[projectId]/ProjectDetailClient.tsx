@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { isOverdue, isCompletedOnTime, isCompletedLate, formatDate, calcProgress, daysUntilDeadline } from '@/lib/utils/dates';
 import { FolderKanban, Users, Calendar, AlertCircle, Ban, Clock, CheckCircle2, ShieldAlert, Trash2 } from 'lucide-react';
 import { ManageTeamDialog } from '@/components/projects/ManageTeamDialog';
+import { TaskList } from '@/components/tasks/TaskList';
 import Link from 'next/link';
 
 export default function ProjectDetailClient() {
@@ -560,6 +561,19 @@ export default function ProjectDetailClient() {
             </CardContent>
           </Card>
         </div>
+
+        {/* All Project Tasks */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <FolderKanban className="h-4.5 w-4.5 text-primary" /> All Project Tasks
+            </CardTitle>
+            <CardDescription>Comprehensive list of all tasks assigned under this project</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TaskList tasks={tasks} emptyMessage="No tasks have been created for this project yet." />
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );

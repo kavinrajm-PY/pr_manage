@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { createTask } from '@/services/tasks';
 import { createNotification } from '@/services/notifications';
+import { sendTaskAssignedNotification } from '@/services/email';
 import { Task, TaskPriority, User, Project } from '@/types';
 import { FileJson, AlertCircle, CheckCircle2, Copy, Check, Calendar, ArrowLeft, Loader2, Sparkles, Info } from 'lucide-react';
 import { formatDate } from '@/lib/utils/dates';
@@ -30,6 +31,7 @@ interface ParsedTask {
   resolvedUser: User;
   priority: TaskPriority;
   deadline: string;
+  notify: boolean;
 }
 
 interface ValidationError {
@@ -45,19 +47,21 @@ const JSON_TEMPLATE = `[
     "description": "Create high-fidelity designs for the main home page",
     "assignedTo": "Alice Smith",
     "priority": "HIGH",
-    "deadline": "2026-08-25"
+    "deadline": "2026-08-25",
+    "notify": "yes"
   },
   {
     "title": "Configure Database Schema",
     "description": "Create Firestore collections and write security rules",
     "assignedTo": "dev@company.com",
     "priority": "MEDIUM",
-    "deadline": "2026-08-28"
+    "deadline": "2026-08-28",
+    "notify": "no"
   }
 ]`;
 
 export function BunchTasksDialog({ project, projectMembers, onTasksCreated }: BunchTasksDialogProps) {
-  const { firebaseUser } = useAuth();
+  const { firebaseUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [jsonText, setJsonText] = useState('');
@@ -232,6 +236,17 @@ export function BunchTasksDialog({ project, projectMembers, onTasksCreated }: Bu
         }
       }
 
+      // 5. Notify Normalization
+      let notify = false;
+      if (item.notify !== undefined) {
+        if (typeof item.notify === 'boolean') {
+          notify = item.notify;
+        } else if (typeof item.notify === 'string') {
+          const notifyStr = item.notify.trim().toLowerCase();
+          notify = notifyStr === 'yes' || notifyStr === 'true';
+        }
+      }
+
       // Collect task if no errors for this record
       if (
         matchedUser &&
@@ -244,6 +259,7 @@ export function BunchTasksDialog({ project, projectMembers, onTasksCreated }: Bu
           resolvedUser: matchedUser,
           priority,
           deadline: deadlineStr,
+          notify,
         });
       }
     });
@@ -284,6 +300,28 @@ export function BunchTasksDialog({ project, projectMembers, onTasksCreated }: Bu
           message: `A new task "${t.title}" has been assigned to you by your Team Lead in "${project.name}".`,
           link: `/tasks/${task.id}`,
         }).catch((err) => console.error('Failed to create task notification', err));
+
+        // If notify is set, send SMTP email
+        if (t.notify) {
+          sendTaskAssignedNotification({
+            email: t.resolvedUser.email,
+            fullName: t.resolvedUser.name,
+            taskTitle: t.title,
+            taskDescription: t.description,
+            projectName: project.name,
+            createdDate: new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
+            deadline: new Date(t.deadline).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
+            createdByName: userProfile?.name || 'Your Team Lead',
+          }).catch((err) => console.error('Failed to send task assignment email', err));
+        }
       }
 
       onTasksCreated(createdList);
@@ -385,6 +423,7 @@ export function BunchTasksDialog({ project, projectMembers, onTasksCreated }: Bu
                 <li><strong className="text-foreground">deadline</strong> (Required YYYY-MM-DD): Must be between <code className="bg-muted px-1 rounded">{project.startDate}</code> and <code className="bg-muted px-1 rounded">{project.deadline}</code>.</li>
                 <li><strong className="text-foreground">priority</strong> (Optional string): <code className="bg-muted px-1 rounded">LOW</code>, <code className="bg-muted px-1 rounded">MEDIUM</code>, <code className="bg-muted px-1 rounded">HIGH</code>, or <code className="bg-muted px-1 rounded">URGENT</code> (default is MEDIUM).</li>
                 <li><strong className="text-foreground">description</strong> (Optional string): Detailed scope of work.</li>
+                <li><strong className="text-foreground">notify</strong> (Optional string/boolean): <code className="bg-muted px-1 rounded">"yes"</code> or <code className="bg-muted px-1 rounded">"no"</code> (sends email notification if set to <code className="bg-muted px-1 rounded">"yes"</code> or <code className="bg-muted px-1 rounded">true</code>).</li>
               </ul>
             </div>
           </div>
@@ -441,6 +480,12 @@ export function BunchTasksDialog({ project, projectMembers, onTasksCreated }: Bu
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-foreground text-sm">{t.title}</span>
                         <PriorityBadge priority={t.priority} />
+                        {t.notify && (
+                          <span className="bg-sky-50 text-sky-700 border border-sky-100 px-1.5 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+                            Notify
+                          </span>
+                        )}
                       </div>
                       {t.description && (
                         <p className="text-muted-foreground line-clamp-2">{t.description}</p>

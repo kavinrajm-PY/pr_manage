@@ -13,8 +13,8 @@ const PUBLIC_ROUTES = ['/login'];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public routes
-  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+  // Allow public routes and API routes
+  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route)) || pathname.startsWith('/api/')) {
     return NextResponse.next();
   }
 
